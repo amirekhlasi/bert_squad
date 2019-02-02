@@ -41,9 +41,12 @@ var = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='bert')
 var = {v.name: v for v in var}
 start_saver = tf.train.Saver(var)
 start_saver.restore(sess, HP.start_checkpoint)
-sess.run(mod.init())
+
+init = tf.initialize_all_variables()
+sess.run(init)
 
 logger = Logger(HP.log_files)
+start_saver.restore(sess, HP.start_checkpoint)
 
 loss = mod.losses(HP.train_layers)
 accuracy = mod.accuracy(HP.train_layers)

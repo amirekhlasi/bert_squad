@@ -135,7 +135,7 @@ class Model(object):
     def train(self, learning_rate, bert_train=True, layers=None):
         if layers is None:
             layers = self.layers
-        self.optimizer = tf.train.GradientDescentOptimizer(learning_rate)
+        optimizer = tf.train.AdamOptimizer(learning_rate)
         vars = [self.answers_finders[i].weights for i in layers]
         vars = sum(vars, [])
         if bert_train:
@@ -143,7 +143,7 @@ class Model(object):
         losses = [self._losses[lay] for lay in layers]
         losses = tf.stack(losses, -1)
         loss = tf.reduce_mean(losses, -1)
-        opt = self.optimizer.minimize(loss, var_list=vars)
+        opt = optimizer.minimize(loss, var_list=vars)
         return opt
 
 
