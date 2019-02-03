@@ -121,7 +121,7 @@ class Model(object):
 
     @property
     def weights(self):
-        bert_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='bert')
+        bert_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='bert')
         af_vars = [af.weights for af in self.answers_finders.values()]
         af_vars = sum(af_vars, [])
         return bert_vars + af_vars
