@@ -1,5 +1,8 @@
 import tensorflow as tf
 import numpy as np
+import sys
+sys.path.insert(0, "/content/drive/My Drive/opt-project/codes/")
+
 import model
 import HP
 from data_generator import DataGenerator
@@ -22,20 +25,19 @@ accuracy = mod.accuracy(HP.train_layers)
 accuracy = list(accuracy[i] for i in HP.layers)
 
 num_experts = len(HP.layers)
-eta = np.arange(HP.eta[0], HP.eta[1], HP.eta[2])
+eta = np.arange(HP.eta[0], HP.eta[1], HP.eta[2], dtype=np.float32)
 num_eta = len(eta)
 probs = tf.get_variable(name='prob', shape=[num_eta, num_experts], dtype=tf.float32, trainable=False)
 logits = -tf.log(probs)
 
 init = tf.assign(probs, tf.ones_like(probs) / num_experts)
 
-choice = tf.random.multinomial(logits, 1)
+choice = tf.random.multinomial(logits, 1, output_dtype=tf.int32)
 choice = tf.squeeze(choice, -1)
 loss = tf.stack(loss)
 accuracy = tf.stack(accuracy)
-ch = tf.stack([tf.range(num_eta), choice], 1)
-my_loss = tf.gather_nd(loss, ch)
-my_accuracy = tf.gather_nd(accuracy, ch)
+my_loss = tf.gather(loss, choice)
+my_accuracy = tf.gather(accuracy, choice)
 
 mean_loss = tf.reduce_sum(loss * probs, -1)
 regret = tf.expand_dims(mean_loss, 1) - loss
@@ -53,10 +55,10 @@ weights = {v.name: v for v in mod.weights}
 
 starter = tf.train.Saver(weights)
 
-saver = tf.train.Saver()
+saver = tf.train.Saver({probs.name: probs})
 
 sess_config = tf.ConfigProto()
-sess_config.gpu_options.allow_memory_growth = True
+sess_config.gpu_options.allow_growth = True
 sess = tf.Session(config=sess_config)
 starter.restore(sess, HP.start_checkpoint)
 
@@ -77,7 +79,7 @@ while not dev_data.has_ended():
     items = sess.run([loss, accuracy, my_loss, my_accuracy, probs, update], feed_dict=feed_dict)
     items = items[:-1]
     for saved_item, item in zip(saved_items, items):
-        saved_item.append(list(item))
+        saved_item.append(item.tolist())
     if step % 1000 == 0:
         text = "step: %d\nsaving checkpoint\n\n" % step
         print(text)
