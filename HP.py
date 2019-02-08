@@ -9,11 +9,13 @@ bert_config = drive_path + "BERT/bert_config.json"
 start_checkpoint = drive_path + "checkpoints/bert_model"
 save_checkpoint = drive_path + "checkpoints/expert_save"
 end_checkpoint = drive_path + "checkpoints/bert_model"
-weights_file = drive_path + "log_dir/logs.json"
+weights_file = drive_path + "checkpoints/weights.json"
 max_seq_length = 256
 is_training = True
 batch_size = 16
 log_files = drive_path + "logs.txt"
 learning_rate = 0.00002
 num_units = 64
+eta = [0.1, 20, 0.2]
+
 
