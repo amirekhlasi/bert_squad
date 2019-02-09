@@ -27,27 +27,25 @@ accuracy = list(accuracy[i] for i in HP.layers)
 num_experts = len(HP.layers)
 eta = np.arange(HP.eta[0], HP.eta[1], HP.eta[2], dtype=np.float32)
 num_eta = len(eta)
-probs = tf.get_variable(name='prob', shape=[num_eta, num_experts], dtype=tf.float32, trainable=False)
-logits = -tf.log(probs)
+log_probs = tf.get_variable(name='log_prob', shape=[num_eta, num_experts], dtype=tf.float32, trainable=False)
+probs = tf.nn.softmax(log_probs, 1)
 
-init = tf.assign(probs, tf.ones_like(probs) / num_experts)
+init = tf.assign(log_probs, tf.zeros_like(log_probs))
 
-choice = tf.random.multinomial(logits, 1, output_dtype=tf.int32)
+choice = tf.random.multinomial(log_probs, 1, output_dtype=tf.int32)
 choice = tf.squeeze(choice, -1)
 loss = tf.stack(loss)
 accuracy = tf.stack(accuracy)
 my_loss = tf.gather(loss, choice)
 my_accuracy = tf.gather(accuracy, choice)
 
-mean_loss = tf.reduce_sum(loss * probs, -1)
+mean_loss = tf.reduce_sum((1 - accuracy) * probs, -1)
 regret = tf.expand_dims(mean_loss, 1) - loss
 
 log_update = tf.expand_dims(eta, 1) * regret
 log_update = log_update - log_update**2
-new_probs = probs * tf.exp(log_update)
-new_probs = new_probs / tf.expand_dims(tf.reduce_sum(new_probs, 1), 1)
 with tf.control_dependencies([my_loss, my_accuracy]):
-    update = tf.assign(probs, new_probs)
+    update = tf.assign(log_probs, log_probs + log_update)
 
 dev_data = DataGenerator(HP.dev_file, HP.max_seq_length, 1)
 
@@ -55,7 +53,7 @@ weights = {v.name: v for v in mod.weights}
 
 starter = tf.train.Saver(weights)
 
-saver = tf.train.Saver({probs.name: probs})
+saver = tf.train.Saver({log_probs.name: log_probs})
 
 sess_config = tf.ConfigProto()
 sess_config.gpu_options.allow_growth = True
@@ -96,18 +94,3 @@ with open(HP.weights_file, 'w') as f:
 print("\n\n\nEND")
 with open(HP.log_files, 'w') as f:
     f.write("***END***\n\n\n")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
