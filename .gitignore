@@ -6,3 +6,4 @@ BERT/
 data/
 checkpoints/
 logs.txt
+output/

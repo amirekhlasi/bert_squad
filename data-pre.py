@@ -1,4 +1,6 @@
 import json
+import HP
+
 
 def make_data(data):
     new_data = []
@@ -22,14 +24,14 @@ def make_data(data):
 
 
 if __name__ == "__main__":
-    with open("data/train-v2.0.json", 'r') as f:
+    with open(HP.original_train_file, 'r') as f:
         data = json.load(f)['data']
     new_data = make_data(data)
-    with open("data/train-pre.json", 'w') as f:
+    with open(HP.pre_train_file, 'w') as f:
         json.dump(new_data, f)
     new_data = None
-    with open("data/dev-v2.0.json", 'r') as f:
+    with open(HP.original_dev_file, 'r') as f:
         data = json.load(f)['data']
     new_data = make_data(data)
-    with open("data/dev-pre.json", 'w') as f:
+    with open(HP.pre_dev_file, 'w') as f:
         json.dump(new_data, f)

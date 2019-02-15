@@ -1,11 +1,13 @@
 import json
-import re
 import tokenization
+import HP
+
 
 def is_whitespace(c):
     if c == " " or c == "\t" or c == "\r" or c == "\n" or ord(c) == 0x202F:
       return True
     return False
+
 
 def analyse(text):
     doc_tokens = []
@@ -69,16 +71,16 @@ def create_data(data, tokenizer):
 
 
 if __name__ == "__main__":
-    tokenizer = tokenization.FullTokenizer("BERT/vocab.txt")
-    with open("data/train-pre.json", 'r') as f:
+    tokenizer = tokenization.FullTokenizer(HP.bert_vocab)
+    with open(HP.pre_train_file, 'r') as f:
         data = json.load(f)
     data = create_data(data, tokenizer)
-    with open("data/train.json", 'w') as f:
+    with open(HP.train_file, 'w') as f:
         json.dump(data, f)
-    with open("data/dev-pre.json", 'r') as f:
+    with open(HP.pre_dev_file, 'r') as f:
         data = json.load(f)
     data = create_data(data, tokenizer)
-    with open("data/dev.json", 'w') as f:
+    with open(HP.dev_file, 'w') as f:
         json.dump(data, f)
 
 
